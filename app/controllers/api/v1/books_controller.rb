@@ -18,9 +18,12 @@ def update
 end
 
 def show
-  # currently limited to 100 - how do we get all pages?
-  @page = Book.find_by(id: params[:id]).pages
-  render json: @page
+  # api does not guarantee row order so need to sort
+  @pages = Book.find_by(id: params[:id]).pages.sort { |a, b| a.file_name <=> b.file_name }
+
+  # remove first element which is just the folder name
+  @pages.shift
+  render json: @pages
 end
 
 private

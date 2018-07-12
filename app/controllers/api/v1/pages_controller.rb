@@ -17,9 +17,6 @@ class Api::V1::PagesController < ApplicationController
   end
 
   def show
-    # # currently limited to 100 - how do we get all pages?
-    # @page = Book.find_by(id: params[:id]).pages
-    # render json: @page
   end
 
   private
