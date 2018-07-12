@@ -17,6 +17,7 @@ class Api::V1::UsersController < ApplicationController
 
    def show
      find_user
+     authenticateGoogleDrive()
      render json: @user
 
    end

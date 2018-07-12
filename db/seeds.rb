@@ -1,3 +1,40 @@
+require 'google/apis/drive_v3'
+require 'googleauth'
+require 'googleauth/stores/file_token_store'
+require 'fileutils'
+require 'pry'
+
+OOB_URI = 'urn:ietf:wg:oauth:2.0:oob'.freeze
+APPLICATION_NAME = 'Drive API Ruby Quickstart'.freeze
+CLIENT_SECRETS_PATH = 'client_secrets.json'.freeze
+CREDENTIALS_PATH = 'token.yaml'.freeze
+SCOPE = Google::Apis::DriveV3::AUTH_DRIVE_METADATA_READONLY
+
+##
+# Ensure valid credentials, either by restoring from the saved credentials
+# files or intitiating an OAuth2 authorization. If authorization is required,
+# the user's default browser will be launched to approve the request.
+#
+# @return [Google::Auth::UserRefreshCredentials] OAuth2 credentials
+def authorize
+  client_id = Google::Auth::ClientId.from_file(CLIENT_SECRETS_PATH)
+  token_store = Google::Auth::Stores::FileTokenStore.new(file: CREDENTIALS_PATH)
+  authorizer = Google::Auth::UserAuthorizer.new(client_id, SCOPE, token_store)
+  user_id = 'default'
+  credentials = authorizer.get_credentials(user_id)
+  if credentials.nil?
+    url = authorizer.get_authorization_url(base_url: OOB_URI)
+    puts 'Open the following URL in the browser and enter the ' \
+         "resulting code after authorization:\n" + url
+    code = gets
+    credentials = authorizer.get_and_store_credentials_from_code(
+      user_id: user_id, code: code, base_url: OOB_URI
+    )
+  end
+  credentials
+end
+
+
 # This file should contain all the record creation needed to seed the database with its default values.
 # The data can then be loaded with the rails db:seed command (or created alongside the database with db:setup).
 #
@@ -20,29 +57,29 @@ User.create(name: "Greg")
 
 
 books = [
-  {book_num: '120844', image_count: 403, title: 'Software development: a rigorous approach', authors: 'Jones, Cliff B.', year: 1977, publisher: 'Prentice-Hall International, Inc., London', isbn: '0138218846', user_id: 1},
+  {book_num: '120844', image_count: 403, title: 'Software development: a rigorous approach', authors: 'Jones, Cliff B.', year: 1977, publisher: 'Prentice-Hall International, Inc., London', isbn: '0138218846', user_id: 2},
   {book_num: '120845', image_count: 593, title: 'Information systems: theory and practice', authors: 'Burch, John G. | Grudnitski, Gary | Strater, Felix R. | Hod, Nathan', year: 1985, publisher: 'John Wiley & Sons, Inc.', isbn: '0471123226', user_id: 1},
   {book_num: '120846', image_count: 521, title: 'Managing the software process', authors: 'Humphrey, Watts S.', year: 1989, publisher: 'Addison-Wesley Publishing Co. Inc.', isbn: '0201180952', user_id: 1},
   {book_num: '120847', image_count: 485, title: 'Digital computer fundamentals', authors: 'Bartee, Thomas C.', year: 1972, publisher: 'McGraw-Hill, Inc.', isbn: '070038910', user_id: 1},
-  {book_num: '120848', image_count: 469, title: 'Microprocessor interfacing techniques', authors: 'Zaks, Rodnay/Lesea, A.', year: 1979, publisher: 'SYBEX, Inc.', isbn: '0895880296', user_id: 1},
+  {book_num: '120848', image_count: 469, title: 'Microprocessor interfacing techniques', authors: 'Zaks, Rodnay/Lesea, A.', year: 1979, publisher: 'SYBEX, Inc.', isbn: '0895880296', user_id: 3},
   {book_num: '120849', image_count: 773, title: 'Numerical recipes in C: the art of scientific computing', authors: 'Press, William H. | Vetterling, William T. | Teukolsky, Saul A. 1947- | Flannery, Brian P.', year: 1988, publisher: 'Cambridge University Press', isbn: '052135465X', user_id: 1},
   {book_num: '120850', image_count: 311, title: 'Applying data structures', authors: 'Lewis, Theodore Gyle | Smith, Marilyn Z.', year: 1976, publisher: 'Houghton Mifflin Co.', isbn: '0395240603', user_id: 1},
   {book_num: '120852', image_count: 515, title: 'Systems programming', authors: 'Donovan, John J.', year: 1972, publisher: 'McGraw-Hill, Inc.', isbn: '070176035', user_id: 1},
   {book_num: '120853', image_count: 449, title: 'The Peter Norton Programmers guide to the IBM PC.', authors: 'Norton, Peter', year: 1985, publisher: 'Peter Norton', isbn: '0140871446', user_id: 1},
   {book_num: '120854', image_count: 515, title: 'PET-CBM personal computer guide', authors: 'Osborne, Adam | Donahue, Carroll S. | Commodore Business Machines, ', year: 1980, publisher: 'McGraw-Hill, Inc.', isbn: '0931988551', user_id: 1},
-  {book_num: '120855', image_count: 453, title: 'Information processing', authors: 'Bohl, Marilyn | Science Research Associates, ', year: 1976, publisher: 'Science Research Associates, Inc.', isbn: '0574210407', user_id: 1},
+  {book_num: '120855', image_count: 453, title: 'Information processing', authors: 'Bohl, Marilyn | Science Research Associates, ', year: 1976, publisher: 'Science Research Associates, Inc.', isbn: '0574210407', user_id: 3},
   {book_num: '120856', image_count: 707, title: 'An introduction to operating systems', authors: 'Deitel, Harvey M.', year: 1984, publisher: 'Addison-Wesley Publishing Co., Inc.', isbn: '0201145014', user_id: 1},
   {book_num: '120857', image_count: 643, title: 'Programmers guide to the EGA and VGA cards', authors: 'Ferraro, Richard F.', year: 1988, publisher: 'Richard Ferraro', isbn: '0201126923', user_id: 1},
   {book_num: '120858', image_count: 643, title: 'PC-based voice processing: how to design, build and program voice processing systems using industry-standard Dialogic hardware', authors: 'Edgar, Bob', year: 1994, publisher: 'Bob Edgar', isbn: '0936648457', user_id: 1},
-  {book_num: '120859', image_count: 383, title: 'Programming in PASCAL', authors: 'Grogono, Peter', year: 1980, publisher: 'Addison-Wesley Publishing Co., Inc.', isbn: '0201027755', user_id: 1},
+  {book_num: '120859', image_count: 383, title: 'Programming in PASCAL', authors: 'Grogono, Peter', year: 1980, publisher: 'Addison-Wesley Publishing Co., Inc.', isbn: '0201027755', user_id: 2},
   {book_num: '120860', image_count: 373, title: '8086/8088 16-bit microprocessor primer', authors: 'Morgan, Christopher L. / Waite, Mitchell', year: 1982, publisher: 'Christopher L. Morgan and Mitchell Waite', isbn: '0070431094', user_id: 1},
   {book_num: '120861', image_count: 453, title: 'Information processing', authors: 'Bohl, Marilyn', year: 1976, publisher: 'Science Research Associates, Inc.', isbn: '0574210407', user_id: 1},
-  {book_num: '120862', image_count: 277, title: 'Data communications for microcomputers: with practical applications and experiments', authors: 'Nichols, Elizabeth Agnew | Musson, Keith R. | Nichols, Joseph C.,', year: 1982, publisher: 'McGraw-Hill, Inc.', isbn: '0070464804', user_id: 1},
+  {book_num: '120862', image_count: 277, title: 'Data communications for microcomputers: with practical applications and experiments', authors: 'Nichols, Elizabeth Agnew | Musson, Keith R. | Nichols, Joseph C.,', year: 1982, publisher: 'McGraw-Hill, Inc.', isbn: '0070464804', user_id: 3},
   {book_num: '120863', image_count: 425, title: 'Digital computer electronics', authors: 'Malvino, Albert Paul', year: 1977, publisher: 'McGraw-Hill, Inc.', isbn: '0070398615', user_id: 1},
   {book_num: '120864', image_count: 247, title: 'Microcomputer operating systems', authors: 'Dahmke, Mark', year: 1982, publisher: 'BYTE Publications Inc.', isbn: '0070150710', user_id: 1},
   {book_num: '120865', image_count: 609, title: 'About face: the essentials of user interface design', authors: 'Cooper, Alan', year: 1995, publisher: 'IDG Books Worldwide, Inc.', isbn: '1568843224', user_id: 1},
   {book_num: '121340', image_count: 561, title: 'Building Internet firewalls', authors: 'Chapman, D. Brent | Zwicky, Elizabeth D.', year: 1995, publisher: 'OReilly & Associates, Inc.', isbn: '1565921240', user_id: 1},
-  {book_num: '121341', image_count: 261, title: 'PostScript language tutorial and cookbook', authors: 'Adobe Systems, ', year: 1985, publisher: 'Adobe Systems Inc.', isbn: '0201101793', user_id: 1},
+  {book_num: '121341', image_count: 261, title: 'PostScript language tutorial and cookbook', authors: 'Adobe Systems, ', year: 1985, publisher: 'Adobe Systems Inc.', isbn: '0201101793', user_id: 2},
   {book_num: '121342', image_count: 245, title: 'PostScript language program design', authors: 'Reid, Glenn C.', year: 1988, publisher: 'Adobe Systems Inc.', isbn: '0201143968', user_id: 1},
   {book_num: '121343', image_count: 223, title: 'Securing Windows NT/2000 servers for the internet', authors: 'Norberg, Stefan', year: 2001, publisher: 'OReilly & Associates, Inc.', isbn: '1565927680', user_id: 1},
   {book_num: '121344', image_count: 435, title: 'Microsoft manual of style for technical publications', authors: 'Microsoft Corporation', year: 2004, publisher: 'Microsoft Corporation', isbn: '0735617465', user_id: 1},
@@ -50,7 +87,7 @@ books = [
   {book_num: '121346', image_count: 527, title: 'Ethernet: the definitive guide', authors: 'Spurgeon, Charles E.', year: 2000, publisher: 'OReilly & Associates, Inc.', isbn: '1565926609', user_id: 1},
   {book_num: '121347', image_count: 445, title: 'TCP/IP clearly explained', authors: 'Loshin, Peter', year: 1997, publisher: 'Academic Press', isbn: '0124558356', user_id: 1},
   {book_num: '121348', image_count: 437, title: 'Microsoft exchange server: planning, design, and implementation', authors: 'Redmond, Tony, 1959-', year: 1997, publisher: 'Tony Redmond', isbn: '1555581625', user_id: 1},
-  {book_num: '121349', image_count: 257, title: 'The Microsoft exchange server Internet mail connector', authors: 'Sakellariadis, Spyros Steven', year: 1997, publisher: 'DUKE Press', isbn: '188241960X', user_id: 1},
+  {book_num: '121349', image_count: 257, title: 'The Microsoft exchange server Internet mail connector', authors: 'Sakellariadis, Spyros Steven', year: 1997, publisher: 'DUKE Press', isbn: '188241960X', user_id: 2},
   {book_num: '121350', image_count: 715, title: 'Inside network perimeter security: the definitive guide to firewalls, VPNs, routers, and intrusion detection systems', authors: 'Northcutt, Stephen / Zeltser, Lenny / Winters, Scott', year: 2003, publisher: 'New Riders Publishing', isbn: '0735712328', user_id: 1},
   {book_num: '121351', image_count: 581, title: 'From chips to systems: an introduction to microprocessors', authors: 'Zaks, Rodnay', year: 1981, publisher: 'SYBEX Inc.', isbn: '0895880636', user_id: 1},
   {book_num: '121352', image_count: 245, title: 'Elements of Web design', authors: 'DiNucci, Darcy / Giudice, Maria / Stiles, Lynne', year: 1998, publisher: 'Darcy DiNucci, Maria Giudice and Lynne Stiles', isbn: '0201696983', user_id: 1},
@@ -58,7 +95,7 @@ books = [
   {book_num: '121362', image_count: 741, title: 'Microsoft windows for workgroups resource kit Version 3.1', authors: 'Microsoft', year: 1992, publisher: 'Microsoft Corporation', isbn: '', user_id: 1},
   {book_num: '121363', image_count: 467, title: 'Microsoft windows for workgroups resource kit addendum for operating system version 3.11', authors: 'Microsoft', year: 1993, publisher: 'Microsoft Corporation', isbn: '', user_id: 1},
   {book_num: '121364', image_count: 251, title: 'Getting it printed how to work with printers and graphic arts services to assure quality, stay on schedule and control costs', authors: 'Beach, Mark / Shepro, Steve / Russon, Ken', year: 1986, publisher: 'Coast to Coast Books', isbn: '', user_id: 1},
-  {book_num: '121365', image_count: 213, title: 'How to photograph works of art', authors: 'Collins, Sheldan', year: 1992, publisher: 'Sheldan Confert Collins', isbn: '0817440194', user_id: 1},
+  {book_num: '121365', image_count: 213, title: 'How to photograph works of art', authors: 'Collins, Sheldan', year: 1992, publisher: 'Sheldan Confert Collins', isbn: '0817440194', user_id: 3},
   {book_num: '121366', image_count: 133, title: 'Getting started', authors: 'Tilling, Leslie', year: 1997, publisher: 'Equilibrium', isbn: '', user_id: 1},
   {book_num: '121367', image_count: 663, title: 'VB & VBA in a nutshell: the language', authors: 'Lomax, Paul', year: 1998, publisher: 'OReilly & Associates, Inc.', isbn: '1565923588', user_id: 1},
   {book_num: '121368', image_count: 155, title: 'IBM PS/Value Point Users Handbook', authors: 'International Business Machines Corporation', year: 1993, publisher: 'International Business Machines Corporation', isbn: '', user_id: 1},
@@ -306,4 +343,18 @@ books = [
   {book_num: '120788', image_count: 231, title: 'The Collected Poetry of Dorothy Parker', authors: 'Dorothy Parker', year: 1959, publisher: 'Random House Inc.', isbn: '', user_id: 1}
 ]
 
-books.each do |book| Book.create(book) end
+# Initialize the API
+service = Google::Apis::DriveV3::DriveService.new
+service.client_options.application_name = APPLICATION_NAME
+service.authorization = authorize
+
+books.each do |book|
+  book = Book.new(book)
+  book.save
+
+  response = service.list_files(q: "name contains '#{book.book_num}'", fields: 'nextPageToken, files(id, name, webViewLink)')
+  response.files.each do |file|
+    page = Page.new({url: file.web_view_link, book_id: book.id})
+    page.save
+  end
+end
