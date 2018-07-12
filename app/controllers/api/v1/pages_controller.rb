@@ -17,14 +17,15 @@ class Api::V1::PagesController < ApplicationController
   end
 
   def show
-    @page = Page.find_by(book_id: params[:id])
-    render json: @page
+    # # currently limited to 100 - how do we get all pages?
+    # @page = Book.find_by(id: params[:id]).pages
+    # render json: @page
   end
 
   private
 
   def page_params
-    params.require(:page).permit(:url)
+    params.require(:page).permit(:url, :file_id, :file_name)
   end
 
   def find_page

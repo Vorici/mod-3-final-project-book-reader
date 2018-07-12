@@ -9,6 +9,7 @@ class CreateBooks < ActiveRecord::Migration[5.2]
       t.string :publisher
       t.string :isbn
       t.integer :user_id
+      t.integer :api_image_count
       t.timestamps
     end
   end

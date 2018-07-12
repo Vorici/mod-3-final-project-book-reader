@@ -34,7 +34,6 @@ def authorize
   credentials
 end
 
-
 # This file should contain all the record creation needed to seed the database with its default values.
 # The data can then be loaded with the rails db:seed command (or created alongside the database with db:setup).
 #
@@ -349,12 +348,23 @@ service.client_options.application_name = APPLICATION_NAME
 service.authorization = authorize
 
 books.each do |book|
+
   book = Book.new(book)
   book.save
 
-  response = service.list_files(q: "name contains '#{book.book_num}'", fields: 'nextPageToken, files(id, name, webViewLink)')
+  image_count = 0
+
+  response = service.list_files(q: "name contains '#{book.book_num}'", page_size: 1000, fields: 'nextPageToken, files(id, name, webViewLink)')
+
   response.files.each do |file|
-    page = Page.new({url: file.web_view_link, book_id: book.id})
+    page = Page.new({url: file.web_view_link, book_id: book.id, file_id: file.id, file_name: file.name})
     page.save
+    image_count = image_count + 1
   end
+
+  book.api_image_count = image_count
+  book.save
+
+  puts "seeded #{book.book_num} with #{image_count} images"
+
 end

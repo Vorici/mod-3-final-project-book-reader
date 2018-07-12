@@ -24,11 +24,14 @@ ActiveRecord::Schema.define(version: 2018_07_11_205209) do
     t.string "publisher"
     t.string "isbn"
     t.integer "user_id"
+    t.integer "api_image_count"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
 
   create_table "pages", force: :cascade do |t|
+    t.string "file_id"
+    t.string "file_name"
     t.string "url"
     t.integer "book_id"
     t.datetime "created_at", null: false

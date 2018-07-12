@@ -1,7 +1,7 @@
 class Api::V1::BooksController < ApplicationController
 
   before_action :find_book, only: [:update]
-  
+
 def index
   books = Book.all
   render json: books
@@ -18,8 +18,9 @@ def update
 end
 
 def show
-  find_book
-  render json: @book
+  # currently limited to 100 - how do we get all pages?
+  @page = Book.find_by(id: params[:id]).pages
+  render json: @page
 end
 
 private
