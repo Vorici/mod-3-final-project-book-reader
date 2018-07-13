@@ -4,6 +4,9 @@ require 'googleauth/stores/file_token_store'
 require 'fileutils'
 require 'pry'
 
+# maximum page size is 1000
+API_PAGE_SIZE = 1000
+
 OOB_URI = 'urn:ietf:wg:oauth:2.0:oob'.freeze
 APPLICATION_NAME = 'Drive API Ruby Quickstart'.freeze
 CLIENT_SECRETS_PATH = 'client_secrets.json'.freeze
@@ -347,6 +350,9 @@ service = Google::Apis::DriveV3::DriveService.new
 service.client_options.application_name = APPLICATION_NAME
 service.authorization = authorize
 
+total_image_count = 0
+total_book_count = 0
+
 books.each do |book|
 
   book = Book.new(book)
@@ -354,7 +360,7 @@ books.each do |book|
 
   image_count = 0
 
-  response = service.list_files(q: "name contains '#{book.book_num}'", page_size: 1000, fields: 'nextPageToken, files(id, name, webViewLink)')
+  response = service.list_files(q: "name contains '#{book.book_num}'", page_size: API_PAGE_SIZE, fields: 'nextPageToken, files(id, name, webViewLink)')
 
   response.files.each do |file|
     page = Page.new({url: file.web_view_link, book_id: book.id, file_id: file.id, file_name: file.name})
@@ -366,5 +372,9 @@ books.each do |book|
   book.save
 
   puts "seeded #{book.book_num} with #{image_count} images"
+  total_image_count = total_image_count + image_count
+  total_book_count = total_book_count + 1
 
 end
+
+puts "total books: #{total_book_count} with #{total_image_count} images"
